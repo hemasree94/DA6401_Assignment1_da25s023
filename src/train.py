@@ -11,7 +11,7 @@ from utils.metrics import accuracy_score, precision_recall_fscore_support
 import wandb
 
 from utils.data_loader import load_data
-from mlp.neural_network import NeuralNetwork
+from ann.neural_network import NeuralNetwork
 
 
 def parse_args():
