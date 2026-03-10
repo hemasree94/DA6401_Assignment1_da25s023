@@ -29,11 +29,10 @@ class NeuralNetwork:
             - weight_decay: L2 regularization strength
         """
         self.layers = []
-        self.activation_type = cli_args.activation
-        self.loss_type = cli_args.loss
-        self.optimizer_type = cli_args.optimizer
-        self.weight_decay = getattr(cli_args, 'weight_decay', 0.0)
-        self.learning_rate = cli_args.learning_rate
+        self.activation_type = getattr(cli_args, "activation", "sigmoid")
+        self.loss_type = getattr(cli_args, "loss", "mse")
+        self.optimizer_type = getattr(cli_args, "optimizer", "rmsprop")
+        self.learning_rate = getattr(cli_args, "learning_rate", 0.0005)
 
         # Initialize modules
         self.activation = Activations()
