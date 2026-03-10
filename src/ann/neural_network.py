@@ -84,21 +84,18 @@ class NeuralNetwork:
 
         for i in reversed(range(len(self.layers))):
 
+            # compute gradients for this layer
             grad = self.layers[i].backward(grad)
 
-            if i != 0:
+            grad_W_list.insert(0, self.layers[i].grad_W.copy())
+            grad_b_list.insert(0, self.layers[i].grad_b.copy())
+
+            # apply activation derivative for previous layer
+            if i > 0:
                 grad = grad * self._apply_activation_derivative(self.Z_cache[i-1])
 
-            # append so index 0 = output layer
-            grad_W_list.append(self.layers[i].grad_W.copy())
-            grad_b_list.append(self.layers[i].grad_b.copy())
-
-        self.grad_W = np.empty(len(grad_W_list), dtype=object)
-        self.grad_b = np.empty(len(grad_b_list), dtype=object)
-
-        for i, (gw, gb) in enumerate(zip(grad_W_list, grad_b_list)):
-            self.grad_W[i] = gw
-            self.grad_b[i] = gb
+        self.grad_W = np.array(grad_W_list, dtype=object)
+        self.grad_b = np.array(grad_b_list, dtype=object)
 
         return self.grad_W, self.grad_b
 
