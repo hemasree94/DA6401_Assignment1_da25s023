@@ -11,6 +11,8 @@ class Layer:
         if weight_init == "xavier":
             limit = np.sqrt(6 / (input_size + output_size))
             self.W = np.random.uniform(-limit, limit, (input_size, output_size))
+        elif weight_init == "zeros":
+            self.W = np.zeros((input_size, output_size))
         else:
             self.W = np.random.randn(input_size, output_size) * 0.01
 
@@ -25,7 +27,9 @@ class Layer:
 
     def forward(self, X):
         self.X = X
-        return X @ self.W + self.b
+        Z = X @ self.W + self.b
+        self.A = Z
+        return Z
 
     def backward(self, d_out):
         batch_size = self.X.shape[0]

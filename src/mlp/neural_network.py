@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
+from utils.metrics import accuracy_score, precision_recall_fscore_support
 from .neural_layer import Layer
 from .activations import Activations
 from .objective_functions import Losses
