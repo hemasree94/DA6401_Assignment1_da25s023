@@ -84,10 +84,10 @@ class NeuralNetwork:
 
         for i in reversed(range(len(self.layers))):
 
-            if i != len(self.layers) - 1:
-                grad = grad * self._apply_activation_derivative(self.Z_cache[i])
-
             grad = self.layers[i].backward(grad)
+
+            if i != 0:
+                grad = grad * self._apply_activation_derivative(self.Z_cache[i-1])
 
             # append so index 0 = output layer
             grad_W_list.append(self.layers[i].grad_W.copy())
