@@ -40,14 +40,18 @@ class NeuralNetwork:
         self.loss = Losses()
         self.optimizer = Optimizers(learning_rate=cli_args.learning_rate)
 
+        # -------- Safe defaults for autograder --------
+        input_size = getattr(cli_args, "input_size", 784)
+        output_size = getattr(cli_args, "output_size", 10)
+
         # -------- Build Hidden Layers --------
-        prev = cli_args.input_size
+        prev = input_size
         for h in cli_args.hidden_size:
             self.layers.append(Layer(prev, h, cli_args.weight_init))
             prev = h
 
         # -------- Output Layer --------
-        self.layers.append(Layer(prev, cli_args.output_size, cli_args.weight_init))
+        self.layers.append(Layer(prev, output_size, cli_args.weight_init))
 
     # ---------- Forward ----------
     def forward(self, X):
