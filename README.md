@@ -90,3 +90,4 @@ By default it will load weights from `best_model.npy` and save results to `infer
 ```
 
 ## Wandb project report link
+https://wandb.ai/da25s023-indian-institute-of-technology-madras/mnist-mlp/reports/Deep-Learning-Assignment-1-Report--VmlldzoxNjEyMjIyMw?accessToken=e6tifwxbbc73icaal8xpzu5nhxw2seebjsje3m5vwm62uwd0m1s32y9vvfr7a8cc
