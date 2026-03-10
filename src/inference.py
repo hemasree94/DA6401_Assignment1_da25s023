@@ -4,7 +4,7 @@ import json
 import argparse
 import numpy as np
 
-# Add parent directory to path to allow imports from root level
+# allow imports from project root
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.metrics import accuracy_score, precision_recall_fscore_support
@@ -13,12 +13,11 @@ from ann.neural_network import NeuralNetwork
 
 
 def parse_arguments():
-    """Parse CLI arguments required for inference."""
-    
     parser = argparse.ArgumentParser(
-        description="Run inference on a saved neural network model"
+        description="Run inference using a trained neural network"
     )
 
+    # same arguments as train.py
     parser.add_argument("-d", "--dataset", choices=["mnist", "fashion_mnist"], default="mnist")
     parser.add_argument("-e", "--epochs", type=int, default=30)
     parser.add_argument("-b", "--batch_size", type=int, default=64)
@@ -26,22 +25,21 @@ def parse_arguments():
     parser.add_argument("-o", "--optimizer", choices=["sgd", "momentum", "nag", "rmsprop", "adam", "nadam"], default="rmsprop")
     parser.add_argument("-lr", "--learning_rate", type=float, default=0.0005)
     parser.add_argument("-wd", "--weight_decay", type=float, default=0.0)
-    parser.add_argument("-nhl", "--num_layers", type=int, default=3)
+    parser.add_argument("-nhl", "--num_layers", type=int, default=1)
     parser.add_argument("-sz", "--hidden_size", type=int, nargs="+", default=[128, 64, 32])
     parser.add_argument("-a", "--activation", choices=["relu", "sigmoid", "tanh"], default="sigmoid")
     parser.add_argument("-wi", "--weight_init", choices=["random", "xavier", "zeros"], default="xavier")
 
-    parser.add_argument("-c", "--config", default="src/best_config.json", help="Path to config JSON")
-    parser.add_argument("-w", "--weights", default="src/best_model.npy", help="Path to saved weights")
-    parser.add_argument("-O", "--output", default="src/inference_results.json", help="Output JSON file")
+    # inference specific
+    parser.add_argument("-c", "--config", default="src/best_config.json")
+    parser.add_argument("-w", "--weights", default="src/best_model.npy")
+    parser.add_argument("-O", "--output", default="src/inference_results.json")
 
     return parser.parse_args()
 
 
 def build_config_from_args(args):
-    """Create configuration dictionary from CLI arguments."""
-
-    config = {
+    return {
         "dataset": args.dataset,
         "epochs": args.epochs,
         "batch_size": args.batch_size,
@@ -52,14 +50,16 @@ def build_config_from_args(args):
         "num_layers": args.num_layers,
         "hidden_size": args.hidden_size,
         "activation": args.activation,
-        "weight_init": args.weight_init
+        "weight_init": args.weight_init,
     }
 
-    return config
+
+def load_config(path):
+    with open(path, "r") as f:
+        return json.load(f)
 
 
-def make_network_from_config(config, input_size, output_size):
-    """Construct NeuralNetwork object from config."""
+def make_network(config, input_size, output_size):
 
     class Args:
         pass
@@ -69,76 +69,69 @@ def make_network_from_config(config, input_size, output_size):
     for k, v in config.items():
         setattr(args, k, v)
 
-    if isinstance(args.hidden_size, (int, float)):
-        args.hidden_size = [int(args.hidden_size)]
-    else:
-        args.hidden_size = [int(h) for h in args.hidden_size]
-
     args.input_size = input_size
     args.output_size = output_size
 
-    net = NeuralNetwork(args)
+    if isinstance(args.hidden_size, int):
+        args.hidden_size = [args.hidden_size]
 
-    return net
-
-
-def load_config(path):
-    """Load configuration JSON."""
-    with open(path, "r") as f:
-        return json.load(f)
+    return NeuralNetwork(args)
 
 
 def run_inference(args):
-    """Run inference on the test dataset."""
 
-    print("\n" + "="*60)
-    print(f"Running inference on {args.dataset.upper()}")
-    print("="*60 + "\n")
+    print("\n==============================")
+    print("Running Inference")
+    print("==============================\n")
 
     (_, _), (x_test, y_test) = load_data(dataset=args.dataset)
+
+    print(f"Test samples: {x_test.shape[0]}")
 
     if args.config and os.path.exists(args.config):
         config = load_config(args.config)
     else:
         config = build_config_from_args(args)
 
-    net = make_network_from_config(
+    net = make_network(
         config,
         input_size=x_test.shape[1],
-        output_size=y_test.shape[1]
+        output_size=y_test.shape[1],
     )
 
-    weights_dict = np.load(args.weights, allow_pickle=True).item()
-    net.set_weights(weights_dict)
+    weights = np.load(args.weights, allow_pickle=True).item()
+    net.set_weights(weights)
 
     preds = net.forward(x_test)
 
-    y_pred_labels = np.argmax(preds, axis=1)
-    y_true_labels = np.argmax(y_test, axis=1)
+    y_pred = np.argmax(preds, axis=1)
+    y_true = np.argmax(y_test, axis=1)
 
-    accuracy = accuracy_score(y_true_labels, y_pred_labels)
+    acc = accuracy_score(y_true, y_pred)
 
     precision, recall, f1, _ = precision_recall_fscore_support(
-        y_true_labels,
-        y_pred_labels,
+        y_true,
+        y_pred,
         average="macro",
-        zero_division=0
+        zero_division=0,
     )
 
-    print("Accuracy :", accuracy)
-    print("Precision:", precision)
-    print("Recall   :", recall)
-    print("F1 Score :", f1)
+    print("\nResults")
+    print("-------------------")
+    print(f"Accuracy : {acc:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall   : {recall:.4f}")
+    print(f"F1 Score : {f1:.4f}\n")
 
     results = {
         "dataset": args.dataset,
-        "accuracy": float(accuracy),
+        "accuracy": float(acc),
         "precision": float(precision),
         "recall": float(recall),
         "f1_score": float(f1),
-        "y_pred": y_pred_labels.tolist(),
-        "y_true": y_true_labels.tolist(),
-        "config": config
+        "y_pred": y_pred.tolist(),
+        "y_true": y_true.tolist(),
+        "config": config,
     }
 
     return results
@@ -153,7 +146,7 @@ def main():
     with open(args.output, "w") as f:
         json.dump(results, f, indent=2)
 
-    print("\nResults saved to", args.output)
+    print(f"Results saved to {args.output}")
 
 
 if __name__ == "__main__":
