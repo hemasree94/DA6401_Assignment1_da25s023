@@ -85,7 +85,7 @@ class NeuralNetwork:
         for i in reversed(range(len(self.layers))):
 
             if i != len(self.layers) - 1:
-                grad *= self._apply_activation_derivative(self.Z_cache[i])
+                grad = grad * self._apply_activation_derivative(self.Z_cache[i])
 
             grad = self.layers[i].backward(grad)
 
@@ -219,13 +219,15 @@ class NeuralNetwork:
             raise ValueError(f"Unknown activation type: {self.activation_type}")
 
     def _compute_loss_derivative(self, y_true, y_pred):
-        """Compute loss derivative based on loss_type"""
+
         if self.loss_type == 'mse':
-            return self.loss.mse_derivative(y_true, y_pred)
+            grad = self.loss.mse_derivative(y_true, y_pred)
         elif self.loss_type == 'cross_entropy':
-            return self.loss.cross_entropy_derivative(y_true, y_pred)
+            grad = self.loss.cross_entropy_derivative(y_true, y_pred)
         else:
             raise ValueError(f"Unknown loss type: {self.loss_type}")
+
+        return grad / y_true.shape[0]
 
     def _apply_optimizer(self, weights, grads):
         """Apply optimizer based on optimizer_type"""
