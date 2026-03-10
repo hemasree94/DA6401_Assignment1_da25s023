@@ -1,0 +1,20 @@
+{
+  "dataset": "mnist",
+  "epochs": 15,
+  "batch_size": 64,
+  "loss": "cross_entropy",
+  "optimizer": "rmsprop",
+  "learning_rate": 0.001,
+  "weight_decay": 0.0,
+  "num_layers": 3,
+  "hidden_size": [
+    128,
+    128,
+    64
+  ],
+  "activation": "sigmoid",
+  "weight_init": "xavier",
+  "input_size": 784,
+  "output_size": 10,
+  "best_f1": 0.2974775509509922
+}
